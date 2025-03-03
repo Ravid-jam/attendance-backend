@@ -129,3 +129,74 @@ exports.getAttendance = async (req, res) => {
     res.status(500).json({ error: error.message, status: false });
   }
 };
+
+exports.getAllEmployeesAttendance = async (req, res) => {
+  try {
+    const { month, year } = req.params;
+
+    // Validate input
+    if (!month || !year) {
+      return res.status(400).json({
+        message: "Month and year are required",
+        status: false,
+      });
+    }
+
+    const startDate = moment(`${year}-${month}-01`)
+      .startOf("month")
+      .format("YYYY-MM-DD");
+    const endDate = moment(`${year}-${month}-01`)
+      .endOf("month")
+      .format("YYYY-MM-DD");
+
+    // Fetch all employees
+    const employees = await Auth.find({
+      role: "STAFF",
+    });
+    if (!employees.length) {
+      return res
+        .status(404)
+        .json({ message: "No employees found", status: false });
+    }
+
+    // Fetch attendance records for the given month
+    const attendanceRecords = await Attendance.find({
+      date: { $gte: startDate, $lte: endDate },
+    }).populate("employeeId");
+
+    // Group attendance by employee
+    const attendanceSummary = employees.map((employee) => {
+      const employeeRecords = attendanceRecords.filter(
+        (record) => record.employeeId._id.toString() === employee._id.toString()
+      );
+      const totalDays = employeeRecords.length;
+      const totalHours = employeeRecords.reduce(
+        (sum, record) => sum + (record.workHours || 0),
+        0
+      );
+
+      return {
+        employeeId: employee._id,
+        name: employee.name,
+        email: employee.email,
+        role: employee.role,
+        totalDays,
+        totalHours: totalHours.toFixed(2),
+        attendanceRecords: employeeRecords,
+      };
+    });
+
+    return res.status(200).json({
+      message: "Employee attendance fetched successfully",
+      data: attendanceSummary,
+      status: true,
+    });
+  } catch (error) {
+    console.error("Error fetching attendance records:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+      status: false,
+    });
+  }
+};
