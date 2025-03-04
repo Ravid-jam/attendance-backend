@@ -95,6 +95,10 @@ exports.checkOut = async (req, res) => {
 exports.getAttendance = async (req, res) => {
   const { employeeId, month, year } = req.params;
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     const startDate = moment(`${year}-${month}-01`)
       .startOf("month")
       .format("YYYY-MM-DD");
@@ -105,13 +109,18 @@ exports.getAttendance = async (req, res) => {
     const attendanceRecords = await Attendance.find({
       employeeId,
       date: { $gte: startDate, $lte: endDate },
-    }).populate("employeeId");
+    })
+      .populate("employeeId")
+      .skip(skip)
+      .limit(limit);
 
     const totalDays = attendanceRecords.length;
     const totalHours = attendanceRecords.reduce(
       (sum, record) => sum + record.workHours,
       0
     );
+    const totalAttendance = await Attendance.countDocuments();
+    const totalPages = Math.ceil(totalAttendance / limit);
 
     res.status(200).json({
       message: "Attendance list successfully",
@@ -123,6 +132,7 @@ exports.getAttendance = async (req, res) => {
         totalHours: totalHours,
         attendanceRecords: attendanceRecords,
       },
+      totalCount: totalPages,
       status: true,
     });
   } catch (error) {
@@ -133,7 +143,9 @@ exports.getAttendance = async (req, res) => {
 exports.getAllEmployeesAttendance = async (req, res) => {
   try {
     const { month, year } = req.params;
-
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     // Validate input
     if (!month || !year) {
       return res.status(400).json({
@@ -153,6 +165,7 @@ exports.getAllEmployeesAttendance = async (req, res) => {
     const employees = await Auth.find({
       role: "STAFF",
     });
+
     if (!employees.length) {
       return res
         .status(404)
@@ -162,7 +175,10 @@ exports.getAllEmployeesAttendance = async (req, res) => {
     // Fetch attendance records for the given month
     const attendanceRecords = await Attendance.find({
       date: { $gte: startDate, $lte: endDate },
-    }).populate("employeeId");
+    })
+      .populate("employeeId")
+      .skip(skip)
+      .limit(limit);
 
     // Group attendance by employee
     const attendanceSummary = employees.map((employee) => {
@@ -185,10 +201,13 @@ exports.getAllEmployeesAttendance = async (req, res) => {
         attendanceRecords: employeeRecords,
       };
     });
+    const totalAttendance = await Attendance.countDocuments();
+    const totalPages = Math.ceil(totalAttendance / limit);
 
     return res.status(200).json({
       message: "Employee attendance fetched successfully",
       data: attendanceSummary,
+      totalCount: totalPages,
       status: true,
     });
   } catch (error) {

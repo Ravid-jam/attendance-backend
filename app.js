@@ -8,6 +8,7 @@ var cors = require("cors");
 
 var attendanceRoutes = require("./routes/attendance");
 var authRoutes = require("./routes/auth");
+var leaveRoutes = require("./routes/leaves");
 
 var app = express();
 require("dotenv").config();
@@ -24,6 +25,7 @@ mongoose.connect(process.env.MONGO_URL).then(() => {
 
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/leaves", leaveRoutes);  
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running at http://localhost:${process.env.PORT}`);

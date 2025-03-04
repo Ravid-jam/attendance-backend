@@ -47,16 +47,24 @@ exports.login = async (req, res) => {
 
 exports.listEmployees = async (req, res) => {
   try {
-    const employees = await Auth.find();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const employees = await Auth.find().skip(skip).limit(limit);
     if (!employees) {
       return res.status(404).json({
         message: "Employees not found",
         status: false,
       });
     }
+    const totalEmployee = await Auth.countDocuments();
+    console.log(totalEmployee);
+    const totalPages = Math.ceil(totalEmployee / limit);
     res.status(200).json({
       message: "Employees list successfully",
       data: employees,
+      totalCount: totalPages,
       status: true,
     });
   } catch (error) {
