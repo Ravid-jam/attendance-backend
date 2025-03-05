@@ -1,6 +1,6 @@
 const Leave = require("../models/leaves.model");
-
 const Auth = require("../models/auth.model");
+const moment = require("moment-timezone");
 
 exports.addLeaves = async (req, res) => {
   try {
@@ -11,7 +11,16 @@ exports.addLeaves = async (req, res) => {
       return res.status(404).json({ message: "User not found", status: false });
     }
 
-    const newLeave = new Leave({ name, leaveType, startDate, endDate, reason });
+    const formattedStartDate = moment(startDate).format("YYYY-MM-DD");
+    const formattedEndDate = moment(endDate).format("YYYY-MM-DD");
+
+    const newLeave = new Leave({
+      name,
+      leaveType,
+      startDate: formattedStartDate,
+      endDate: formattedEndDate,
+      reason,
+    });
     await newLeave.save();
 
     res
@@ -31,14 +40,12 @@ exports.getLeaves = async (req, res) => {
     const leaves = await Leave.find().populate("name").skip(skip).limit(limit);
     const totalLeave = await Leave.countDocuments();
     const totalPages = Math.ceil(totalLeave / limit);
-    res
-      .status(200)
-      .json({
-        message: "All leave requests",
-        data: leaves,
-        totalCount: totalPages,
-        status: true,
-      });
+    res.status(200).json({
+      message: "All leave requests",
+      data: leaves,
+      totalCount: totalPages,
+      status: true,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message, status: false });
   }
@@ -48,9 +55,18 @@ exports.getLeaveByIdAndUpdate = async (req, res) => {
   try {
     const { leaveType, startDate, endDate, reason, status } = req.body;
 
+    const formattedStartDate = moment(startDate).format("YYYY-MM-DD");
+    const formattedEndDate = moment(endDate).format("YYYY-MM-DD");
+
     const leave = await Leave.findByIdAndUpdate(
       req.params.id,
-      { leaveType, startDate, endDate, reason, status },
+      {
+        leaveType,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
+        reason,
+        status,
+      },
       { new: true, runValidators: true }
     );
 

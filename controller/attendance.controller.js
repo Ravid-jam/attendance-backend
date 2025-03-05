@@ -116,7 +116,7 @@ exports.getAttendance = async (req, res) => {
 
     const totalDays = attendanceRecords.length;
     const totalHours = attendanceRecords.reduce(
-      (sum, record) => sum + record.workHours,
+      (sum, record) => sum + (record.workHours || 0),
       0
     );
     const totalAttendance = await Attendance.countDocuments();
