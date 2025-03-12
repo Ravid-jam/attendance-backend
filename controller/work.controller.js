@@ -32,7 +32,10 @@ exports.addWork = async (req, res) => {
         status: false,
       });
     }
-    const formattedDate = moment(date).format("YYYY-MM-DD");
+    const formattedDate = moment
+      .utc(date)
+      .tz("Asia/Kolkata")
+      .format("YYYY-MM-DD");
 
     const workAdded = await Work.create({
       employee,
