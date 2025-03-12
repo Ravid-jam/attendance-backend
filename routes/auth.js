@@ -5,6 +5,7 @@ const {
   listEmployees,
   getEmployeeByIdAndDelete,
   getEmployeeByIdAndUpdate,
+  getEmployeeById,
 } = require("../controller/auth.controller");
 const authorize = require("../middelware/Middleware");
 
@@ -16,5 +17,6 @@ router.post("/login", login);
 router.get("/listEmployees", authorize, listEmployees);
 router.delete("/remove/:id", authorize, getEmployeeByIdAndDelete);
 router.put("/update/:id", authorize, getEmployeeByIdAndUpdate);
+router.get("/getEmployee/:id", authorize, getEmployeeById);
 
 module.exports = router;

@@ -1,14 +1,38 @@
 var mongoose = require("mongoose");
 
 var authSchema = new mongoose.Schema({
-  name: {
+  profile_Image: {
+    id: String,
+    url: String,
+  },
+  firstName: {
     type: String,
-    required: true,
+    required: false,
+  },
+  lastName: {
+    type: String,
+    required: false,
+  },
+  address: {
+    type: String,
+    required: false,
+  },
+  contactNumber: {
+    type: String,
+    required: false,
+  },
+  dateOfBirth: {
+    type: String,
+    required: false,
+  },
+  gender: {
+    type: String,
+    enum: ["Male", "Female", "Other"],
+    required: false,
   },
   email: {
     type: String,
     required: true,
-    unique: true,
     match: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
   },
   password: {

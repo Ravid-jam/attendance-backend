@@ -31,26 +31,6 @@ exports.addLeaves = async (req, res) => {
   }
 };
 
-exports.getLeaves = async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    const leaves = await Leave.find().populate("name").skip(skip).limit(limit);
-    const totalLeave = await Leave.countDocuments();
-    const totalPages = Math.ceil(totalLeave / limit);
-    res.status(200).json({
-      message: "All leave requests",
-      data: leaves,
-      totalCount: totalPages,
-      status: true,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message, status: false });
-  }
-};
-
 exports.getLeaveByIdAndUpdate = async (req, res) => {
   try {
     const { leaveType, startDate, endDate, reason, status } = req.body;
@@ -122,6 +102,76 @@ exports.updateLeaveStatus = async (req, res) => {
     res
       .status(200)
       .json({ message: `Leave request ${status}`, data: leave, status: true });
+  } catch (error) {
+    res.status(500).json({ message: error.message, status: false });
+  }
+};
+
+exports.getLeaveByEmployee = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const { id } = req.params;
+
+    if (!id) {
+      return res
+        .status(400)
+        .json({ message: "Employee ID is required", status: false });
+    }
+    const leaves = await Leave.find({
+      name: id,
+    })
+      .populate("name")
+      .skip(skip)
+      .limit(limit);
+    const totalLeave = await Leave.countDocuments();
+
+    res.status(200).json({
+      message: "Leave requests by employee",
+      data: leaves,
+      totalCount: totalLeave,
+      status: true,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message, status: false });
+  }
+};
+
+exports.getLeavesByFilters = async (req, res) => {
+  try {
+    const { month, year, employeeId } = req.query;
+    let query = {};
+
+    if (month && year) {
+      const startDate = moment(`${year}-${month}-01`)
+        .startOf("month")
+        .format("YYYY-MM-DD");
+      const endDate = moment(startDate).endOf("month").format("YYYY-MM-DD");
+      query.startDate = { $gte: startDate, $lte: endDate };
+    }
+
+    if (employeeId) {
+      query.name = employeeId;
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const leaves = await Leave.find(query)
+      .populate("name")
+      .skip(skip)
+      .limit(limit);
+
+    const totalLeave = await Leave.countDocuments(query);
+
+    res.status(200).json({
+      message: "Leave requests fetched successfully",
+      data: leaves,
+      totalCount: totalLeave,
+      status: true,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message, status: false });
   }
