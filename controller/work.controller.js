@@ -84,7 +84,10 @@ exports.updateWork = async (req, res) => {
     }
 
     const exitsWork = await Work.findById(id);
-    const formattedDate = moment(date).format("YYYY-MM-DD");
+    const formattedDate = moment
+      .utc(date)
+      .tz("Asia/Kolkata")
+      .format("YYYY-MM-DD");
     if (exitsWork) {
       const workUpdate = await Work.findByIdAndUpdate(
         id,

@@ -11,8 +11,15 @@ exports.addLeaves = async (req, res) => {
       return res.status(404).json({ message: "User not found", status: false });
     }
 
-    const formattedStartDate = moment(startDate).format("YYYY-MM-DD");
-    const formattedEndDate = moment(endDate).format("YYYY-MM-DD");
+    const formattedStartDate = moment
+      .utc(startDate)
+      .tz("Asia/Kolkata")
+      .format("YYYY-MM-DD");
+
+    const formattedEndDate = moment
+      .utc(endDate)
+      .tz("Asia/Kolkata")
+      .format("YYYY-MM-DD");
 
     const newLeave = new Leave({
       name,
@@ -35,8 +42,15 @@ exports.getLeaveByIdAndUpdate = async (req, res) => {
   try {
     const { leaveType, startDate, endDate, reason, status } = req.body;
 
-    const formattedStartDate = moment(startDate).format("YYYY-MM-DD");
-    const formattedEndDate = moment(endDate).format("YYYY-MM-DD");
+    const formattedStartDate = moment
+      .utc(startDate)
+      .tz("Asia/Kolkata")
+      .format("YYYY-MM-DD");
+
+    const formattedEndDate = moment
+      .utc(endDate)
+      .tz("Asia/Kolkata")
+      .format("YYYY-MM-DD");
 
     const leave = await Leave.findByIdAndUpdate(
       req.params.id,
