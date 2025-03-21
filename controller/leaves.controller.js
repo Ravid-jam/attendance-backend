@@ -50,7 +50,7 @@ exports.getLeaveByIdAndUpdate = async (req, res) => {
     const formattedEndDate = moment
       .utc(endDate)
       .tz("Asia/Kolkata")
-      .format("YYYY-MM-DD");
+      .format("YYYY-MM-DD");  
 
     const leave = await Leave.findByIdAndUpdate(
       req.params.id,
